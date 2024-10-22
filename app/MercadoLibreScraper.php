@@ -23,62 +23,66 @@ class MercadoLibreScraper implements ScraperServiceInterface
         $xpath = new DOMXPath($dom);
 
         // Extraer las propiedades utilizando XPath
-        $propertyItems = $xpath->query("//li[contains(@class, 'ui-search-layout__item')]");
-        var_dump($propertyItems->item(0));
-        die;
+        $propertyItems = $xpath->query("//div[contains(@class, 'poly-card__content')]");
         $properties = [];
         foreach ($propertyItems as $item) {
             
             //Title
             $urlNode = $xpath->query(".//h2[contains(@class, 'poly-component__title')]", $item);
             $title = $urlNode->item(0)->textContent;
-           // $url = $urlNode->item(0)->getAttribute('href');
-//var_dump($urlNode);
-var_dump($urlNode->item(1));
-die;
-            //Price
-            $priceNode = $xpath->query(".//div[contains(@class, 'lc-price')]", $item);
-            $price = trim($priceNode->item(0)->nodeValue);
-            
-            $price = explode(" ",$price);
-            $priceValue = null;
-            $currencyValue = null;
 
-            if (count($price) == 2) {
-                $priceValue = $price[0];
-                $currencyValue = $price[1];
+            //Url
+            $urlNode = $xpath->query(".//h2[contains(@class, 'poly-component__title')]//a", $item);
+            $url = $urlNode->item(0)->getAttribute('href');
+
+            //Price
+            $priceNode = $xpath->query(".//span[contains(@class, 'andes-money-amount__fraction')]", $item);
+            $price = $priceNode->item(0)->textContent * 1000;
+
+            $currencyNode = $xpath->query(".//span[contains(@class, 'andes-money-amount__currency-symbol')]", $item);
+            $currency = $currencyNode->item(0)->textContent;
+
+            if ($currency == "US$") {
+                $currency = "USD";
+            } else {
+                $currency = "UYU";
             }
 
+            $attributesNode = $xpath->query(".//li[contains(@class, 'poly-attributes-list__bar')]", $item);
+            
             //Bedrooms
-            $bedroomsNode = $xpath->query(".//div[contains(@class, 'lc-typologyTag')]//strong", $item);
-            $bedrooms = $bedroomsNode->item(0)->nodeValue;
-            $bedrooms = explode(" ",$bedrooms);
+            $bedroomsNode = $attributesNode->item(0)->nodeValue;
+            $bedrooms = explode(" ",$bedroomsNode);
 
             //Baths
-            $bathsNode = $xpath->query(".//div[contains(@class, 'lc-typologyTag')]//strong", $item);
-            $baths = $bathsNode->item(1)->nodeValue;
-            $baths = explode(" ",$baths);
+            $bathNode = $attributesNode->item(1)->nodeValue;
+            $baths = explode(" ",$bathNode);
             
             //Guests
-            $guestsNode = $xpath->query(".//div[contains(@class, 'lc-typologyTag')]//strong", $item);
+            /*$guestsNode = $xpath->query(".//div[contains(@class, 'lc-typologyTag')]//strong", $item);
             $guests = $guestsNode->item(2)->nodeValue;
-            $guests = explode(" ",$guests);
+            $guests = explode(" ",$guests);*/
 
             //Location
-            $locationNode = $xpath->query(".//strong[contains(@class, 'lc-location')]", $item);
-            $location = $locationNode->item(0)->nodeValue;
-            $location = explode(",",$location);
+            $locationNode = $xpath->query(".//span[contains(@class, 'poly-component__location')]", $item);
+            $locationItem = $locationNode->item(0)->nodeValue;
+            $location = explode(",",$locationItem);
             
+            $cantLocation = count($location);
+           
+            $neighborhood = trim($location[0]);
+            $location = trim($location[$cantLocation-1]);
+
             $propertyData = [
                 'title' => $title,
-                'price' => $priceValue,
-                'currency' => $currencyValue,
+                'price' => $price,
+                'currency' => $currency,
                 'bedrooms' => (int)$bedrooms[0],
                 'bathrooms' => (int)$baths[0],
-                'guests' =>  (int)$guests[0],
-                'neighborhood' =>  $location[0],
-                'location' => $location[1],
-                'url' => "https://www.infocasas.com.uy".$url,
+                'guests' =>  0,
+                'neighborhood' =>  $neighborhood,
+                'location' => $location,
+                'url' => $url,
             ];
             $propertyData['hash'] = md5(json_encode($propertyData));
 

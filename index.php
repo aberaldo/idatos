@@ -3,7 +3,7 @@
 require_once 'app/ScraperFactory.php';
 require_once 'app/DatabaseService.php';
 
-// Verificar si la URL fue pasada como parámetro
+// Url parameter
 if (isset($_SERVER['argv'][1])) {
     $url = $_SERVER['argv'][1];
 } else {
@@ -12,13 +12,13 @@ if (isset($_SERVER['argv'][1])) {
 }
 
 try {  
-    // Crear el scraper adecuado
+    // Create scraper
     $scraper = ScraperFactory::createScraper($url);
     
-    // Scraper los datos
+    // Scrapping data
     $data = $scraper->scrape($url);
 
-    // Guardar los datos en la base de datos
+    // Save to Database
     $databaseService = new DatabaseService('localhost', 'idatos', 'root', 'secret');
     $databaseService->saveToDatabase($data);
 
