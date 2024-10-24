@@ -42,8 +42,8 @@ class InfoCasasScraper implements ScraperServiceInterface
             $currencyValue = null;
 
             if (count($price) == 2) {
-                $priceValue = $price[0];
-                $currencyValue = $price[1];
+                $priceValue = $price[1];
+                $currencyValue = $price[0];
             }
 
             //Bedrooms
@@ -66,6 +66,9 @@ class InfoCasasScraper implements ScraperServiceInterface
             $location = $locationNode->item(0)->nodeValue;
             $location = explode(",",$location);
             
+            $neighborhood = trim($location[0]);
+            $location = trim($location[1]);
+            
             $propertyData = [
                 'title' => $title,
                 'price' => $priceValue,
@@ -73,8 +76,8 @@ class InfoCasasScraper implements ScraperServiceInterface
                 'bedrooms' => (int)$bedrooms[0],
                 'bathrooms' => (int)$baths[0],
                 'guests' =>  (int)$guests[0],
-                'neighborhood' =>  $location[0],
-                'location' => $location[1],
+                'neighborhood' =>  $neighborhood,
+                'location' => $location,
                 'url' => "https://www.infocasas.com.uy".$url,
             ];
             $propertyData['hash'] = md5(json_encode($propertyData));

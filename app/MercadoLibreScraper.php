@@ -94,6 +94,11 @@ class MercadoLibreScraper implements ScraperServiceInterface
 
     public function scrape($url)
     {
+        $parsed_url = parse_url($url);
+      
+     //   parse_str($parsed_url['fragment'], $params);
+      //  var_dump($params);
+      //  die;
         // Obtener el contenido HTML de la web
         $html = $this->getWebContent($url);
 

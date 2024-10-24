@@ -20,7 +20,7 @@ try {
 
     // Save to Database
     $databaseService = new DatabaseService('localhost', 'idatos', 'root', 'secret');
-    $databaseService->saveToDatabase($data);
+    $databaseService->saveProperty($data);
 
     echo "Datos scrapeados y guardados exitosamente.";
 } catch (Exception $e) {
