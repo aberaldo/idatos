@@ -20,9 +20,33 @@ class DatabaseService
             $locationId = $this->getOrCreateLocation($property['location']);
             $neighborhoodId = $this->getOrCreateNeighborhood($property['neighborhood']);
 
-            // Save to database
-            $stmt = $this->pdo->prepare("INSERT INTO properties (title, price, currency, bedrooms, guests, bathrooms, neighborhood, location, url, hash) VALUES (:title, :price, :currency, :bedrooms, :guests, :bathrooms, :neighborhood, :location, :url, :hash) ON DUPLICATE KEY UPDATE hash = VALUES(hash)");
+            $this->insertOrUpdateProperty($property, $locationId, $neighborhoodId);
+            
+        }
+    }
 
+    function insertOrUpdateProperty($property, $locationId, $neighborhoodId) {
+
+        $query = "SELECT * FROM properties WHERE url = :url";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute(['url' => $property['url']]);
+
+        $query = null;
+        if ($stmt->rowCount() > 0) {
+            $prop = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($prop['hash'] != $property['hash']) {
+                // Update
+                var_dump("entroooo");
+                $query = "UPDATE properties SET title = :title, price = :price, currency = :currency,  bedrooms = :bedrooms, guests = :guests, bathrooms = :bathrooms, neighborhood = :neighborhood, location = :location, url = :url, platform = :platform, hash = :hash WHERE url = :url";
+            }
+        } else {
+            // Insert
+            $query = "INSERT INTO properties (title, price, currency, bedrooms, guests, bathrooms, neighborhood, location, url, platform, hash) VALUES (:title, :price, :currency, :bedrooms, :guests, :bathrooms, :neighborhood, :location, :url, :platform, :hash) ON DUPLICATE KEY UPDATE hash = VALUES(hash)";
+        }
+
+        if ($query) {
+            // Execute query
+            $stmt = $this->pdo->prepare($query);
             $stmt->execute([
                 ':title' => $property['title'],
                 ':price' => $property['price'],
@@ -33,11 +57,13 @@ class DatabaseService
                 ':neighborhood' => $neighborhoodId,
                 ':location' => $locationId,
                 ':url' => $property['url'],
+                ':platform' => $property['platform'],
                 ':hash' => $property['hash'],
             ]);
-        }
+        }   
+        
     }
-
+    
     function getOrCreateLocation($location) {
         try {
             // Try insert location

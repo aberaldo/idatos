@@ -37,48 +37,55 @@ class InfoCasasScraper implements ScraperServiceInterface
             $priceNode = $xpath->query(".//div[contains(@class, 'lc-price')]", $item);
             $price = trim($priceNode->item(0)->nodeValue);
             
-            $price = explode(" ",$price);
+            $price = explode(" ",$price); //El formato del precio es Moneda Precio
             $priceValue = null;
             $currencyValue = null;
 
             if (count($price) == 2) {
-                $priceValue = $price[1];
-                $currencyValue = $price[0];
+                $currencyValue = $price[0]; //Precio
+                $priceValue = $price[1]; //Moneda
+            }
+
+            if ($currencyValue == 'U$S') { //La moneda se transforma a USD y UYU
+                $currency = 'USD';
+            } else {
+                $currency = 'UYU';
             }
 
             //Bedrooms
             $bedroomsNode = $xpath->query(".//div[contains(@class, 'lc-typologyTag')]//strong", $item);
             $bedrooms = $bedroomsNode->item(0)->nodeValue;
-            $bedrooms = explode(" ",$bedrooms);
+            $bedrooms = explode(" ",$bedrooms); //El formato es X dormitorios. Nos quedamos con el numero
 
             //Baths
             $bathsNode = $xpath->query(".//div[contains(@class, 'lc-typologyTag')]//strong", $item);
             $baths = $bathsNode->item(1)->nodeValue;
-            $baths = explode(" ",$baths);
+            $baths = explode(" ",$baths); //El formato es X baños. Nos quedamos con el numero
             
             //Guests
             $guestsNode = $xpath->query(".//div[contains(@class, 'lc-typologyTag')]//strong", $item);
             $guests = $guestsNode->item(2)->nodeValue;
-            $guests = explode(" ",$guests);
+            $guests = explode(" ",$guests); //El formato es X huespedes. Nos quedamos con el numero
 
             //Location
             $locationNode = $xpath->query(".//strong[contains(@class, 'lc-location')]", $item);
             $location = $locationNode->item(0)->nodeValue;
-            $location = explode(",",$location);
+            $location = explode(",",$location); //La localidad es barrio, localidad. 
             
-            $neighborhood = trim($location[0]);
-            $location = trim($location[1]);
+            $neighborhood = trim($location[0]); //Barrio
+            $location = trim($location[1]); //Localidad
             
             $propertyData = [
                 'title' => $title,
                 'price' => $priceValue,
-                'currency' => $currencyValue,
+                'currency' => $currency,
                 'bedrooms' => (int)$bedrooms[0],
                 'bathrooms' => (int)$baths[0],
                 'guests' =>  (int)$guests[0],
                 'neighborhood' =>  $neighborhood,
                 'location' => $location,
                 'url' => "https://www.infocasas.com.uy".$url,
+                'platform' => 'info-casas',
             ];
             $propertyData['hash'] = md5(json_encode($propertyData));
 

@@ -33,30 +33,32 @@ class MercadoLibreScraper implements ScraperServiceInterface
 
             //Url
             $urlNode = $xpath->query(".//h2[contains(@class, 'poly-component__title')]//a", $item);
-            $url = $urlNode->item(0)->getAttribute('href');
-
+            $urlData = $urlNode->item(0)->getAttribute('href');
+            $urlData = explode("&tracking_id", $urlData); //viene un dato track_id en la url que cada vez que se lee la url cambia. Eso daba problemas con el hash. Se saca ese track_id
+            $url=$urlData[0];
+            
             //Price
             $priceNode = $xpath->query(".//span[contains(@class, 'andes-money-amount__fraction')]", $item);
-            $price = $priceNode->item(0)->textContent * 1000;
+            $price = $priceNode->item(0)->textContent * 1000; //Se multiplica por 1000 debido al formato
 
             $currencyNode = $xpath->query(".//span[contains(@class, 'andes-money-amount__currency-symbol')]", $item);
             $currency = $currencyNode->item(0)->textContent;
 
-            if ($currency == "US$") {
+            if ($currency == "US$") { //La moneda se transforma a USD y UYU
                 $currency = "USD";
             } else {
                 $currency = "UYU";
             }
 
-            $attributesNode = $xpath->query(".//li[contains(@class, 'poly-attributes-list__bar')]", $item);
+            $attributesNode = $xpath->query(".//li[contains(@class, 'poly-attributes-list__item')]", $item);
             
             //Bedrooms
             $bedroomsNode = $attributesNode->item(0)->nodeValue;
-            $bedrooms = explode(" ",$bedroomsNode);
+            $bedrooms = explode(" ",$bedroomsNode); //El formato es X dormitorios. Nos quedamos con el numero
 
             //Baths
             $bathNode = $attributesNode->item(1)->nodeValue;
-            $baths = explode(" ",$bathNode);
+            $baths = explode(" ",$bathNode); //El formato es X baños. Nos quedamos solo con el numero
             
             //Guests
             /*$guestsNode = $xpath->query(".//div[contains(@class, 'lc-typologyTag')]//strong", $item);
@@ -66,12 +68,12 @@ class MercadoLibreScraper implements ScraperServiceInterface
             //Location
             $locationNode = $xpath->query(".//span[contains(@class, 'poly-component__location')]", $item);
             $locationItem = $locationNode->item(0)->nodeValue;
-            $location = explode(",",$locationItem);
+            $location = explode(",",$locationItem); //El formato es un listado de lugares y el ultimo es la localidad. Nos quedamos con el primero y el ultimo
             
             $cantLocation = count($location);
            
-            $neighborhood = trim($location[0]);
-            $location = trim($location[$cantLocation-1]);
+            $neighborhood = trim($location[0]); //El primero es el barrio
+            $location = trim($location[$cantLocation-1]); //El ultimo es el localidad
 
             $propertyData = [
                 'title' => $title,
@@ -83,6 +85,7 @@ class MercadoLibreScraper implements ScraperServiceInterface
                 'neighborhood' =>  $neighborhood,
                 'location' => $location,
                 'url' => $url,
+                'platform' => 'mercado-libre',
             ];
             $propertyData['hash'] = md5(json_encode($propertyData));
 
@@ -94,11 +97,6 @@ class MercadoLibreScraper implements ScraperServiceInterface
 
     public function scrape($url)
     {
-        $parsed_url = parse_url($url);
-      
-     //   parse_str($parsed_url['fragment'], $params);
-      //  var_dump($params);
-      //  die;
         // Obtener el contenido HTML de la web
         $html = $this->getWebContent($url);
 
