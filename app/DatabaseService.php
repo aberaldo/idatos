@@ -36,7 +36,6 @@ class DatabaseService
             $prop = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($prop['hash'] != $property['hash']) {
                 // Update
-                var_dump("entroooo");
                 $query = "UPDATE properties SET title = :title, price = :price, currency = :currency,  bedrooms = :bedrooms, guests = :guests, bathrooms = :bathrooms, neighborhood = :neighborhood, location = :location, url = :url, platform = :platform, hash = :hash WHERE url = :url";
             }
         } else {
@@ -91,4 +90,17 @@ class DatabaseService
             echo "Error al insertar o actualizar barrio: " . $e->getMessage();
         }
     }
+    
+    function getProperties() {
+        try {
+            // Get properties
+            $sql = "SELECT * FROM `properties`";
+            $stmt = $this->pdo->query($sql);
+            
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            echo "Error al obtener propiedades: " . $e->getMessage();
+        }
+    }
+
 }
