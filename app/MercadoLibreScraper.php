@@ -75,21 +75,26 @@ class MercadoLibreScraper implements ScraperServiceInterface
             $neighborhood = trim($location[0]); //El primero es el barrio
             $location = trim($location[$cantLocation-1]); //El ultimo es el localidad
 
-            $propertyData = [
-                'title' => $title,
-                'price' => $price,
-                'currency' => $currency,
-                'bedrooms' => (int)$bedrooms[0],
-                'bathrooms' => (int)$baths[0],
-                'guests' =>  0,
-                'neighborhood' =>  $neighborhood,
-                'location' => $location,
-                'url' => $url,
-                'platform' => 'mercado-libre',
-            ];
-            $propertyData['hash'] = md5(json_encode($propertyData));
+            if (!is_null($title) && !is_null($location)) { //Completitud, se exige titulo y localidad
+                $propertyData = [
+                    'title' => $title,
+                    'price' => $price,
+                    'currency' => $currency,
+                    'bedrooms' => (int)$bedrooms[0],
+                    'bathrooms' => (int)$baths[0],
+                    'guests' =>  0,
+                    'neighborhood' =>  $neighborhood,
+                    'location' => $location,
+                ];
 
-            $properties[] = $propertyData;
+                //Precision de datos, generacion de hash
+                $propertyData['hash'] = md5(json_encode($propertyData));
+                
+                $propertyData['url'] = $url;
+                $propertyData['platform'] = 'mercado-libre';
+                $properties[] = $propertyData;
+            }
+            
         }
 
         return $properties;

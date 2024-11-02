@@ -42,8 +42,8 @@ class InfoCasasScraper implements ScraperServiceInterface
             $currencyValue = null;
 
             if (count($price) == 2) {
-                $currencyValue = $price[0]; //Precio
-                $priceValue = $price[1]; //Moneda
+                $currencyValue = $price[0]; //Moneda
+                $priceValue = $price[1]; //Precio
             }
 
             if ($currencyValue == 'U$S') { //La moneda se transforma a USD y UYU
@@ -75,21 +75,26 @@ class InfoCasasScraper implements ScraperServiceInterface
             $neighborhood = trim($location[0]); //Barrio
             $location = trim($location[1]); //Localidad
             
-            $propertyData = [
-                'title' => $title,
-                'price' => $priceValue,
-                'currency' => $currency,
-                'bedrooms' => (int)$bedrooms[0],
-                'bathrooms' => (int)$baths[0],
-                'guests' =>  (int)$guests[0],
-                'neighborhood' =>  $neighborhood,
-                'location' => $location,
-                'url' => "https://www.infocasas.com.uy".$url,
-                'platform' => 'info-casas',
-            ];
-            $propertyData['hash'] = md5(json_encode($propertyData));
+            if (!is_null($title) && !is_null($location)) { //Completitud, se exige titulo y localidad
+                $propertyData = [
+                    'title' => $title,
+                    'price' => $priceValue,
+                    'currency' => $currency,
+                    'bedrooms' => (int)$bedrooms[0],
+                    'bathrooms' => (int)$baths[0],
+                    'guests' =>  (int)$guests[0],
+                    'neighborhood' =>  $neighborhood,
+                    'location' => $location,
+                ];
 
-            $properties[] = $propertyData;
+                //Frescura de datos, generacion de hash
+                $propertyData['hash'] = md5(json_encode($propertyData));
+
+                $propertyData['url'] = "https://www.infocasas.com.uy".$url;
+                $propertyData['platform'] = 'info-casas';
+                $properties[] = $propertyData;
+            }
+            
         }
 
         return $properties;
